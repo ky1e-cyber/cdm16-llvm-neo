@@ -30,7 +30,7 @@
 
 using namespace llvm;
 
-extern "C" void LLVMInitializeCDMAsmPrinter(){
+extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeCDMAsmPrinter(){
   RegisterAsmPrinter<CDMAsmPrinter> X(getTheCDMTarget());
 }
 void CDMAsmPrinter::emitInstruction(const MachineInstr *Instr) {
