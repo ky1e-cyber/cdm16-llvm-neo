@@ -226,6 +226,9 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
   SmallVector<SDValue, 8> MemOpChains;
 
+  auto PtrVT = getPointerTy(DAG.getDataLayout());
+  SDValue StackPtr = DAG.getCopyFromReg(Chain, Loc, CDM::SP, PtrVT);
+
   // Walk the register/memloc assignments, inserting copies/loads.
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
@@ -241,9 +244,6 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
     assert(VA.isMemLoc());
 
-    // todo: fix erasing local variables
-    auto PtrVT = getPointerTy(DAG.getDataLayout());
-    SDValue StackPtr = DAG.getCopyFromReg(Chain, Loc, CDM::SP, PtrVT);
     SDValue PtrOff = DAG.getIntPtrConstant(VA.getLocMemOffset(), Loc);
     PtrOff = DAG.getNode(ISD::ADD, Loc, PtrVT, StackPtr, PtrOff);
 
@@ -265,7 +265,7 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   }
 
   // We only support calling global addresses.
-  EVT PtrVT = getPointerTy(DAG.getDataLayout());
+  PtrVT = getPointerTy(DAG.getDataLayout());
 
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee)) {
     Callee = DAG.getTargetGlobalAddress(G->getGlobal(), Loc, PtrVT, 0);

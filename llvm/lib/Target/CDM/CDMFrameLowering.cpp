@@ -27,22 +27,22 @@ namespace llvm {
 bool CDMFrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
-      MFI.hasVarSizedObjects() || MFI.isFrameAddressTaken();
+         MFI.hasVarSizedObjects() || MFI.isFrameAddressTaken();
 }
 
 void CDMFrameLowering::emitPrologue(MachineFunction &MF,
                                     MachineBasicBlock &MBB) const {
-  MachineFrameInfo &MFI    = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   CDMFunctionInfo *CDMFI = MF.getInfo<CDMFunctionInfo>();
 
   const CDMInstrInfo &TII =
-      *static_cast<const CDMInstrInfo*>(STI.getInstrInfo());
+      *static_cast<const CDMInstrInfo *>(STI.getInstrInfo());
   const CDMRegisterInfo &RegInfo =
       *static_cast<const CDMRegisterInfo *>(STI.getRegisterInfo());
 
   MachineBasicBlock::iterator MBBI = MBB.begin();
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
-//  Cpu0ABIInfo ABI = STI.getABI();
+  //  Cpu0ABIInfo ABI = STI.getABI();
   unsigned SP = CDM::SP;
   const TargetRegisterClass *RC = &CDM::CPURegsRegClass;
 
@@ -50,7 +50,8 @@ void CDMFrameLowering::emitPrologue(MachineFunction &MF,
   uint64_t StackSize = MFI.getStackSize();
 
   // No need to allocate space on the stack.
-  if (StackSize == 0 && !MFI.adjustsStack()) return;
+  if (StackSize == 0 && !MFI.adjustsStack())
+    return;
 
   MachineModuleInfo &MMI = MF.getMMI();
   if (hasFP(MF)) {
@@ -60,47 +61,49 @@ void CDMFrameLowering::emitPrologue(MachineFunction &MF,
   }
 
   // Something for debugging from cpu0, idk
-//  MachineModuleInfo &MMI = MF.getMMI();
-//  const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
-//
-//  // Adjust stack.
-//  TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
-//
-//  // emit ".cfi_def_cfa_offset StackSize"
-//  unsigned CFIIndex =
-//      MF.addFrameInst(
-//          MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
-//  BuildMI(MBB, MBBI, DL, TII.get(TargetOpcode::CFI_INSTRUCTION))
-//      .addCFIIndex(CFIIndex);
-//
-//  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
-//
-//  if (!CSI.empty()) {
-//    // Find the instruction past the last instruction that saves a callee-saved
-//    // register to the stack.
-//    for (unsigned i = 0; i < CSI.size(); ++i)
-//      ++MBBI;
-//
-//    // Iterate over list of callee-saved registers and emit .cfi_offset
-//    // directives.
-//    for (std::vector<CalleeSavedInfo>::const_iterator I = CSI.begin(),
-//                                                      E = CSI.end(); I != E; ++I) {
-//      int64_t Offset = MFI.getObjectOffset(I->getFrameIdx());
-//      unsigned Reg = I->getReg();
-//      {
-//        // Reg is in CPURegs.
-//        unsigned CFIIndex = MF.addFrameInst(MCCFIInstruction::createOffset(
-//            nullptr, MRI->getDwarfRegNum(Reg, true), Offset));
-//        BuildMI(MBB, MBBI, DL, TII.get(TargetOpcode::CFI_INSTRUCTION))
-//            .addCFIIndex(CFIIndex);
-//      }
-//    }
-//  }
+  //  MachineModuleInfo &MMI = MF.getMMI();
+  //  const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
+  //
+  //  // Adjust stack.
+  //  TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
+  //
+  //  // emit ".cfi_def_cfa_offset StackSize"
+  //  unsigned CFIIndex =
+  //      MF.addFrameInst(
+  //          MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
+  //  BuildMI(MBB, MBBI, DL, TII.get(TargetOpcode::CFI_INSTRUCTION))
+  //      .addCFIIndex(CFIIndex);
+  //
+  //  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
+  //
+  //  if (!CSI.empty()) {
+  //    // Find the instruction past the last instruction that saves a
+  //    callee-saved
+  //    // register to the stack.
+  //    for (unsigned i = 0; i < CSI.size(); ++i)
+  //      ++MBBI;
+  //
+  //    // Iterate over list of callee-saved registers and emit .cfi_offset
+  //    // directives.
+  //    for (std::vector<CalleeSavedInfo>::const_iterator I = CSI.begin(),
+  //                                                      E = CSI.end(); I != E;
+  //                                                      ++I) {
+  //      int64_t Offset = MFI.getObjectOffset(I->getFrameIdx());
+  //      unsigned Reg = I->getReg();
+  //      {
+  //        // Reg is in CPURegs.
+  //        unsigned CFIIndex = MF.addFrameInst(MCCFIInstruction::createOffset(
+  //            nullptr, MRI->getDwarfRegNum(Reg, true), Offset));
+  //        BuildMI(MBB, MBBI, DL, TII.get(TargetOpcode::CFI_INSTRUCTION))
+  //            .addCFIIndex(CFIIndex);
+  //      }
+  //    }
+  //  }
 }
 void CDMFrameLowering::emitEpilogue(MachineFunction &MF,
                                     MachineBasicBlock &MBB) const {
   MachineBasicBlock::iterator MBBI = MBB.getFirstTerminator();
-  MachineFrameInfo &MFI            = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   CDMFunctionInfo *Cpu0FI = MF.getInfo<CDMFunctionInfo>();
 
   const CDMInstrInfo &TII =
@@ -110,15 +113,32 @@ void CDMFrameLowering::emitEpilogue(MachineFunction &MF,
 
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
 
-
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI.getStackSize();
 
-  // This should match condition in emitEpilogue (But sometimes it generates stackframe when it is not needed_
+  // This should match condition in emitEpilogue (But sometimes it generates
+  // stackframe when it is not needed_
   if (StackSize == 0 && !MFI.adjustsStack())
     return;
 
   TII.adjustStackPtr(StackSize, MBB, MBBI);
   BuildMI(MBB, MBBI, DL, TII.get(CDM::POP)).addReg(CDM::FP);
+}
+
+MachineBasicBlock::iterator CDMFrameLowering::eliminateCallFramePseudoInstr(
+    MachineFunction &MF, MachineBasicBlock &MBB,
+    MachineBasicBlock::iterator MI) const {
+  int Size = MI->getOperand(0).getImm();
+  if (MI->getOpcode() ==
+      CDM::ADJCALLSTACKUP) // logically there must be ADJCALLSTACKDOWN but for
+                           // some reason it works this way
+    Size = -Size;
+
+  auto &TII =
+      *static_cast<const CDMInstrInfo *>(MF.getSubtarget().getInstrInfo());
+
+  if (Size)
+    TII.adjustStackPtr(-Size, MBB, MI);
+  return MBB.erase(MI);
 }
 } // namespace llvm
