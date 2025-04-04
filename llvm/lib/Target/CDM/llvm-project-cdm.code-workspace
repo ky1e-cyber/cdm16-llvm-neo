@@ -1,5 +1,5 @@
 {
-	"folders": [
+  "folders": [
 		{
 			"path": "../../../.."
 		},
@@ -9,8 +9,6 @@
 		}
 	],
 	"settings": {
-		"files.associations": {
-			"*.inc": "cpp"
-		}
-	}
+    "files.associations" : {"*.inc" : "cpp"}
+  }
 }

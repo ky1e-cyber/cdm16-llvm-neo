@@ -1,10 +1,5 @@
-add_llvm_component_library(LLVMCDMInstPrinter
-        CDMInstPrinter.cpp
+add_llvm_component_library(LLVMCDMInstPrinter CDMInstPrinter.cpp
 
-        LINK_COMPONENTS
-        Support
+                               LINK_COMPONENTS Support
 
-        ADD_TO_COMPONENT
-        CDM
-)
-
+                                   ADD_TO_COMPONENT CDM)
