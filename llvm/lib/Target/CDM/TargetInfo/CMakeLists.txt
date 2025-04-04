@@ -1,5 +1,10 @@
-add_llvm_component_library(LLVMCDMInfo CDMTargetInfo.cpp
+add_llvm_component_library(LLVMCDMInfo
+  CDMTargetInfo.cpp
 
-                               LINK_COMPONENTS MC Support
+  LINK_COMPONENTS
+  MC
+  Support
 
-                                   ADD_TO_COMPONENT CDM)
+  ADD_TO_COMPONENT
+  CDM
+  )

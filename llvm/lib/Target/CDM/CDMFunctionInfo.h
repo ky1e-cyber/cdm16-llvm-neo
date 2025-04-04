@@ -14,13 +14,15 @@
 
 namespace llvm {
 
-class CDMFunctionInfo : public MachineFunctionInfo {
+class CDMFunctionInfo : public MachineFunctionInfo{
 public:
-  CDMFunctionInfo(MachineFunction &MF) : MF(MF) {}
+  CDMFunctionInfo(MachineFunction& MF)
+      : MF(MF) {}
 
 private:
-  MachineFunction &MF;
+  MachineFunction& MF;
 };
+
 
 } // namespace llvm
 
