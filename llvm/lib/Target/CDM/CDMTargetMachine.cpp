@@ -38,6 +38,12 @@ CDMTargetMachine::CDMTargetMachine(const Target &T, const Triple &TT,
 }
 CDMTargetMachine::~CDMTargetMachine() = default;
 
+MachineFunctionInfo *CDMTargetMachine::createMachineFunctionInfo(
+    BumpPtrAllocator &Allocator, const Function &F,
+    const TargetSubtargetInfo *STI) const {
+  return CDMFunctionInfo::create<CDMFunctionInfo>(Allocator, F, STI);
+}
+
 namespace {
 class CDMPassConfig : public TargetPassConfig {
 public:

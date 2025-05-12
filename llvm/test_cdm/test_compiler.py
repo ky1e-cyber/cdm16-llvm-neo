@@ -58,7 +58,7 @@ def test_compiler():
                 "-target",
                 "cdm",
                 "-S",
-                "-O1",
+                "-O0",
                 str(src_file),
                 "-o",
                 str(asm_res),

@@ -59,6 +59,7 @@ public:
   MachineBasicBlock *
   EmitInstrWithCustomInserter(MachineInstr &MI,
                               MachineBasicBlock *MBB) const override;
+  SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
 
 private:
   SDValue lowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
