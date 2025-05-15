@@ -68,7 +68,6 @@ SDValue CDMISelLowering::LowerFormalArguments(
   CCInfo.AnalyzeFormalArguments(Ins, CC_CDM);
 
   unsigned RegArgCount = 0;
-  unsigned NextFixedObjectAddress = 4;
   for (auto &VA : ArgLocs) {
     if (VA.isRegLoc()) {
       EVT RegVT = VA.getLocVT();
@@ -89,9 +88,6 @@ SDValue CDMISelLowering::LowerFormalArguments(
     assert(VA.isMemLoc());
 
     // The stack pointer offset is relative to the caller stack frame.
-    NextFixedObjectAddress = std::max(uint64_t(NextFixedObjectAddress),
-                                      4 + StackReserved + VA.getLocMemOffset() +
-                                          ValVT.getSizeInBits() / 8);
     int FI =
         MFI.CreateFixedObject(ValVT.getSizeInBits() / 8,
                               4 + StackReserved + VA.getLocMemOffset(), true);
@@ -108,34 +104,23 @@ SDValue CDMISelLowering::LowerFormalArguments(
   CDMFunctionInfo *CDMFI = MF.getInfo<CDMFunctionInfo>();
   CDMFI->setVarArgsFrameIndex(0);
 
-  unsigned NumOfRegs = 0;
-  int FirstRegSlotOffset = 4;
-  unsigned RegSize = 1;
-  int RegSlotOffset = FirstRegSlotOffset + RegArgCount * RegSize;
-
-  int FirstVaArgOffset = RegSlotOffset;
-  int VaArgOffset = FirstVaArgOffset + 1;
-
-  // Block of code down here is intended to handle varargs passed through
-  // registers
-  SmallVector<SDValue, 6> OutChains;
-  for (int I = 0; VaArgOffset <= FirstRegSlotOffset + 4 * RegSize;
-       VaArgOffset += 1, I++) {
+  // Block of code below handle varargs passed through registers
+  int VaArgStartSPOffset = 4 + RegArgCount * 2;
+  SmallVector<SDValue, 5> OutChains;
+  for (int VaArgSPOffset = VaArgStartSPOffset, RegNum = 5 + RegArgCount;
+       RegNum <= 8; RegNum++, VaArgSPOffset += 2) {
     EVT RegVT = MVT::i16;
     Register VReg = RegInfo.createVirtualRegister(&CDM::CPURegsRegClass);
-    RegInfo.addLiveIn(VaArgOffset, VReg);
+    RegInfo.addLiveIn(RegNum, VReg);
     SDValue VArg = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
-    int FI = MF.getFrameInfo().CreateFixedObject(
-        2, FirstRegSlotOffset + RegArgCount * 2 + I * 2, true);
-    NextFixedObjectAddress += 2;
+    int FI = MF.getFrameInfo().CreateFixedObject(2, VaArgSPOffset, true);
     auto PtrVT = getPointerTy(MF.getDataLayout());
     OutChains.push_back(
         DAG.getStore(Chain, DL, VArg, DAG.getFrameIndex(FI, PtrVT),
                      MachinePointerInfo::getFixedStack(MF, FI)));
   }
 
-  auto LastFI =
-      MFI.CreateFixedObject(2, FirstRegSlotOffset + RegArgCount * 2, true);
+  auto LastFI = MFI.CreateFixedObject(2, VaArgStartSPOffset, true);
   CDMFI->setVarArgsFrameIndex(LastFI);
 
   CDMFI->setLastInArgFI(LastFI);
@@ -261,7 +246,6 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   CallingConv::ID CallConv = CLI.CallConv;
   const bool IsVarArg = CLI.IsVarArg;
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo &MFI = MF.getFrameInfo();
   const TargetFrameLowering *TFL = MF.getSubtarget().getFrameLowering();
 
   CLI.IsTailCall = false;
@@ -278,8 +262,6 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   unsigned NextStackOffset = CCInfo.getStackSize() + StackReserved;
   unsigned StackAlignment = TFL->getStackAlignment();
   NextStackOffset = alignTo(NextStackOffset, StackAlignment);
-  SDValue NextStackOffsetVal =
-      DAG.getIntPtrConstant(NextStackOffset, Loc, true);
 
   Chain = DAG.getCALLSEQ_START(Chain, NextStackOffset, 0, Loc);
 
@@ -290,9 +272,9 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   SDValue StackPtr = DAG.getCopyFromReg(Chain, Loc, CDM::SP, PtrVT);
 
   // Walk the register/memloc assignments, inserting copies/loads.
-  for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
-    CCValAssign &VA = ArgLocs[i];
-    SDValue Arg = OutVals[i];
+  for (unsigned I = 0, E = ArgLocs.size(); I != E; ++I) {
+    CCValAssign &VA = ArgLocs[I];
+    SDValue Arg = OutVals[I];
 
     // We only handle fully promoted arguments.
     assert(VA.getLocInfo() == CCValAssign::Full && "Unhandled loc info");
@@ -374,18 +356,18 @@ SDValue CDMISelLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Handle result values, copying them out of physregs into vregs that we
   // return.
-  return LowerCallResult(Chain, InFlag, CallConv, IsVarArg, Ins, Loc, DAG,
+  return lowerCallResult(Chain, InFlag, CallConv, IsVarArg, Ins, Loc, DAG,
                          InVals);
 }
 
-SDValue CDMISelLowering::LowerCallResult(
-    SDValue Chain, SDValue InGlue, CallingConv::ID CallConv, bool isVarArg,
+SDValue CDMISelLowering::lowerCallResult(
+    SDValue Chain, SDValue InGlue, CallingConv::ID CallConv, bool IsVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins, SDLoc DL, SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) const {
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), RVLocs,
+  CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLocs,
                  *DAG.getContext());
 
   CCInfo.AnalyzeCallResult(Ins, RetCC_CDM);
@@ -408,7 +390,7 @@ SDValue CDMISelLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   case ISD::JumpTable:
     return lowerJumpTable(Op, DAG);
   case ISD::VASTART:
-    return LowerVASTART(Op, DAG);
+    return lowerVASTART(Op, DAG);
   }
   return SDValue();
 }
@@ -490,7 +472,7 @@ CDMISelLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   return TailMBB;
 }
 
-SDValue CDMISelLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
+SDValue CDMISelLowering::lowerVASTART(SDValue Op, SelectionDAG &DAG) const {
   MachineFunction &MF = DAG.getMachineFunction();
   CDMFunctionInfo *FuncInfo = MF.getInfo<CDMFunctionInfo>();
 
