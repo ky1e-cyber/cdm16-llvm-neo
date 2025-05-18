@@ -42,14 +42,18 @@ $(BUILD_DIR)/cdm-devkit:
 
 $(BUILD_DIR)/docker-dummy: config/cdm-devkit.Dockerfile
 	docker build -t cdm-devkit --file $< .
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	touch $@
 
 build-docker: $(BUILD_DIR)/docker-dummy
 
-$(UNCHANGED_RESOURCES): $(BUILD_DIR)/docker-dummy $(BUILD_DIR)/cdm-devkit
+$(BUILD_DIR)/cdm-devkit-tests-dummy: $(BUILD_DIR)/docker-dummy $(BUILD_DIR)/cdm-devkit
 	docker run --rm -v ${PWD}/$(BUILD_DIR):/root cdm-devkit make prepare_tests
-	mkdir -p $(BUILD_DIR)/resources
+	@mkdir -p $(@D)
+	touch $@
+
+$(UNCHANGED_RESOURCES): $(BUILD_DIR)/cdm-devkit-tests-dummy
+	@mkdir -p $(BUILD_DIR)/resources
 	cp $(BUILD_DIR)/cdm-devkit/tests/jar/logisim-runner-all.jar $(RESOURCES_DIR)
 	cp $(BUILD_DIR)/cdm-devkit/tests/resources/cdm16/circuits/* $(RESOURCES_DIR)
 
