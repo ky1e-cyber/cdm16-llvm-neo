@@ -5,9 +5,11 @@
 #include "CDMMCInstLower.h"
 
 #include "CDMAsmPrinter.h"
+#include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineOperand.h"
+#include "llvm/MC/MCExpr.h"
 
 namespace llvm {
 CDMMCInstLower::CDMMCInstLower(CDMAsmPrinter &AsmPrinter)
@@ -47,8 +49,8 @@ MCOperand CDMMCInstLower::lowerOperand(const MachineOperand &MO,
 }
 MCOperand CDMMCInstLower::lowerSymbolOperand(const MachineOperand &MO,
                                              int Offset) const {
-  MCSymbolRefExpr::VariantKind Kind = MCSymbolRefExpr::VK_None;
-  const MCSymbol *Symbol;
+  MCSymbolRefExpr::VariantKind Kind = (MCSymbolRefExpr::VariantKind)MO.getTargetFlags();
+  const MCSymbol *Symbol = nullptr;
 
   switch (MO.getType()) {
   case MachineOperand::MO_ExternalSymbol:

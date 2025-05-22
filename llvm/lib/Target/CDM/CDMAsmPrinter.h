@@ -7,7 +7,10 @@
 
 #include "CDMMCInstLower.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/CodeGen/AsmPrinter.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/MC/MCSection.h"
 #include "llvm/MC/MCStreamer.h"
 namespace llvm {
 
@@ -26,7 +29,6 @@ public:
   void emitFunctionBodyStart() override;
   void emitFunctionBodyEnd() override;
   void emitLinkage(const GlobalValue *GV, MCSymbol *GVSym) const override;
-  //  void emitStartOfAsmFile(Module &module) override;
   void emitFunctionHeader() override;
   void emitStartOfAsmFile(Module &Module) override;
   void emitEndOfAsmFile(Module &Module) override;

@@ -63,6 +63,12 @@ $(MODIFIED_RESOURCES): $(RESOURCES_DIR)/%: config/%
 
 prepare_tests: $(RESOURCES)
 
+$(BUILD_DIR)/libs/%.asm: libs/src/%.c
+	@mkdir -p $(@D)
+	../build/bin/clang -target cdm -S -O3 -I libs/inc $< -o $@
+
+std-libs: $(BUILD_DIR)/libs/string.asm
+
 clean:
 	rm -rf build/*
 
