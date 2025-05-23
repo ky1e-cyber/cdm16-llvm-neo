@@ -34,6 +34,7 @@ UNCHANGED_RESOURCES=$(addprefix \
 RESOURCES=$(UNCHANGED_RESOURCES) $(MODIFIED_RESOURCES)
 
 LIBS=$(addprefix $(BUILD_DIR)/libs/,	\
+	ctype.asm														\
 	string.asm													\
 )
 
@@ -69,7 +70,8 @@ prepare_tests: $(RESOURCES)
 
 $(LIBS): $(BUILD_DIR)/libs/%.asm: libs/src/%.c
 	@mkdir -p $(@D)
-	../build/bin/clang -target cdm -S -O3 -I libs/inc $< -o $@
+	# FIXME: strstr does not work with higher optimization flags
+	../build/bin/clang -target cdm -S -O1 -I libs/inc $< -o $@
 
 std-libs: $(BUILD_DIR)/libs/string.asm
 

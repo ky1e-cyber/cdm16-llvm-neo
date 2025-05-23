@@ -8,10 +8,9 @@ long long sum(int Count, ...) {
 
   Result += va_arg(Args, long long);
   Result += va_arg(Args, long);
-  Result += va_arg(Args, int);
 
   va_end(Args);
   return Result;
 }
 
-int main(void) { return sum(8, 3ll, 4l, 5); }
+int main(void) { return sum(2, 3ll, 9l); }

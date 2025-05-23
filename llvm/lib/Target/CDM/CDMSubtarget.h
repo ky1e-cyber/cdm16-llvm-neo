@@ -9,6 +9,7 @@
 
 #include "CDMFrameLowering.h"
 #include "CDMInstrInfo.h"
+#include "llvm/CodeGen/SelectionDAGTargetInfo.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/TargetParser/Triple.h"
@@ -19,6 +20,8 @@
 namespace llvm {
 
 class CDMSubtarget : public CDMGenSubtargetInfo {
+  SelectionDAGTargetInfo TSInfo;
+
 public:
   CDMSubtarget(const Triple &TT, StringRef CPU, StringRef FS,
                const CDMTargetMachine &TM);
@@ -30,6 +33,9 @@ public:
   const CDMInstrInfo *getInstrInfo() const override { return InstrInfo.get(); }
   const CDMRegisterInfo *getRegisterInfo() const override {
     return &(InstrInfo->getRegisterInfo());
+  }
+  const SelectionDAGTargetInfo *getSelectionDAGInfo() const override {
+    return &TSInfo;
   }
 
 protected:

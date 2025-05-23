@@ -19,20 +19,20 @@ public:
     IntWidth = 16;
     IntAlign = 16;
     LongWidth = 32;
-    LongAlign = 32;
-    LongLongWidth = 32;
-    LongLongAlign = 32;
+    LongAlign = 16;
+    LongLongWidth = 64;
+    LongLongAlign = 16;
     SuitableAlign = 8;
     DefaultAlignForAttributeAligned = 8;
     HalfWidth = 16;
     HalfAlign = 16;
     FloatWidth = 32;
-    FloatAlign = 8;
+    FloatAlign = 16;
     DoubleWidth = 32;
-    DoubleAlign = 8;
+    DoubleAlign = 16;
     DoubleFormat = &llvm::APFloat::IEEEsingle();
-    LongDoubleWidth = 32;
-    LongDoubleAlign = 8;
+    LongDoubleWidth = 128;
+    LongDoubleAlign = 16;
     LongDoubleFormat = &llvm::APFloat::IEEEsingle();
     SizeType = UnsignedInt;
     PtrDiffType = SignedInt;
@@ -42,7 +42,7 @@ public:
     Int16Type = SignedInt;
     Char32Type = UnsignedLong;
     SigAtomicType = SignedChar;
-    resetDataLayout("e-S16-p:16:16-i8:8-i16:16-i32:16-m:C-n16");
+    resetDataLayout("e-S16-p:16:16-i8:8-i16:16-i32:16-i64:16-m:C-n16");
   }
 
   ArrayRef<Builtin::Info> getTargetBuiltins() const override {

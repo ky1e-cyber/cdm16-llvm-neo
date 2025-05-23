@@ -84,6 +84,7 @@ def run_test(
                 "-o",
                 f"/root/gen/{bin_res.name}",
                 "/root/ivt.img",
+                "/root/libs/ctype.asm", # todo: automize library list
                 "/root/libs/string.asm",
                 f"/root/gen/{asm_res.name}",
             ],
