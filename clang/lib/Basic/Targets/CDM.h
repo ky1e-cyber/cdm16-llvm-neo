@@ -14,7 +14,6 @@ public:
       : TargetInfo(Triple){
     TLSSupported = false;
     PointerWidth = 16;
-    // TODO: check whether it is true
     PointerAlign = 8;
     IntWidth = 16;
     IntAlign = 16;
