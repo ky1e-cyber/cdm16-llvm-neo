@@ -29,10 +29,10 @@ public:
     FloatAlign = 16;
     DoubleWidth = 64;
     DoubleAlign = 16;
-    DoubleFormat = &llvm::APFloat::IEEEsingle();
+    DoubleFormat = &llvm::APFloat::IEEEdouble();
     LongDoubleWidth = 128;
     LongDoubleAlign = 16;
-    LongDoubleFormat = &llvm::APFloat::IEEEsingle();
+    LongDoubleFormat = &llvm::APFloat::IEEEquad();
     SizeType = UnsignedInt;
     PtrDiffType = SignedInt;
     IntPtrType = SignedInt;
