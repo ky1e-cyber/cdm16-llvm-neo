@@ -47,6 +47,9 @@ void CDMFrameLowering::emitPrologue(MachineFunction &MF,
   if (hasFP(MF)) {
     BuildMI(MBB, MBBI, DL, TII.get(CDM::PUSH)).addReg(CDM::FP);
     BuildMI(MBB, MBBI, DL, TII.get(CDM::LDSP)).addReg(CDM::FP);
+  }
+
+  if (StackSize != 0){
     TII.adjustStackPtr(-StackSize, MBB, MBBI);
   }
 }
@@ -69,8 +72,13 @@ void CDMFrameLowering::emitEpilogue(MachineFunction &MF,
   if (StackSize == 0 && !MFI.adjustsStack())
     return;
 
-  TII.adjustStackPtr(StackSize, MBB, MBBI);
-  BuildMI(MBB, MBBI, DL, TII.get(CDM::POP)).addReg(CDM::FP);
+  if (StackSize != 0){
+	  TII.adjustStackPtr(StackSize, MBB, MBBI);
+  }
+
+  if (hasFP(MF)){
+	  BuildMI(MBB, MBBI, DL, TII.get(CDM::POP)).addReg(CDM::FP);
+  }
 }
 
 MachineBasicBlock::iterator CDMFrameLowering::eliminateCallFramePseudoInstr(
