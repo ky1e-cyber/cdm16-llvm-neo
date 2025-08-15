@@ -7799,6 +7799,14 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
       D.Diag(diag::err_drv_argument_not_allowed_with) << "-fomit-frame-pointer"
                                                       << A->getAsString(Args);
 
+  // Check for options unsupported by CdM target
+  if (TC.getArch() == llvm::Triple::cdm){
+	  if (Arg *A = Args.getLastArg(options::OPT_fomit_frame_pointer)){
+		D.Diag(diag::err_drv_unsupported_opt_for_target)
+		    << A->getAsString(Args) << TC.getTripleString();
+	  }
+  }
+
   // Claim some arguments which clang supports automatically.
 
   // -fpch-preprocess is used with gcc to add a special marker in the output to
