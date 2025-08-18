@@ -35,7 +35,7 @@ void CDMFrameLowering::emitPrologue(MachineFunction &MF,
       *static_cast<const CDMInstrInfo *>(STI.getInstrInfo());
 
   MachineBasicBlock::iterator MBBI = MBB.begin();
-  DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
+  DebugLoc DL = DebugLoc();
 
   // First, compute final stack size.
   uint64_t StackSize = MFI.getStackSize();
