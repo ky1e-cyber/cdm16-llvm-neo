@@ -151,7 +151,7 @@ void CDMAsmPrinter::emitFunctionHeader() {
 }
 
 void CDMAsmPrinter::emitStartOfAsmFile(Module &Module) {
-  collectAndEmitSourceFiles(module);
+  collectAndEmitSourceFiles(Module);
 
   OutStreamer->emitRawText("memset, memcpy: ext\n");
 
