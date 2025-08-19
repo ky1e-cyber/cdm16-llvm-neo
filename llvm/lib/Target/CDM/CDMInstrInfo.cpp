@@ -102,7 +102,7 @@ void CDMInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 }
 void CDMInstrInfo::adjustStackPtr(int64_t Amount, MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I) const {
-  DebugLoc DL = I != MBB.end() ? I->getDebugLoc() : DebugLoc();
+  DebugLoc DL = DebugLoc();
 
   BuildMI(MBB, I, DL, get(CDM::ADDSP)).addImm(Amount);
 }
