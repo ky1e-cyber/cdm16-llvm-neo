@@ -116,7 +116,7 @@ def run_test(
                 "test_circuit_emu.circ",
                 f"/root/{os.path.relpath(mem_res, build_dir)}",
                 "config.properties",
-                "10000",
+                "262144",
             ],
             cwd=resources,
             stdout=subprocess.PIPE,
