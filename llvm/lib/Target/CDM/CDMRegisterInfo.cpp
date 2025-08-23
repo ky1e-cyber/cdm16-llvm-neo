@@ -7,8 +7,7 @@
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineMemOperand.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
-#include "llvm/MC/MCInstrInfo.h"
-#include "llvm/Support/Casting.h"
+#include <unordered_set>
 #define DEBUG_TYPE "cdm-reg-info"
 
 #include "CDMRegisterInfo.h"
@@ -16,8 +15,8 @@
 #include "CDMFrameLowering.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
-#include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/CodeGen/RegisterScavenging.h"
+#include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Debug.h"
@@ -79,53 +78,54 @@ bool CDMRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                     << "spOffset   : " << SpOffset << "\n"
                     << "stackSize  : " << StackSize << "\n");
 
+  const auto IsInvalidByteFPRelIns = [](unsigned Op, int64_t Offset) {
+    const std::unordered_set<unsigned> ByteFPRelIns = {CDM::ssb, CDM::lsb,
+                                                       CDM::lssb};
+
+    return ByteFPRelIns.count(Op) == 1 && (Offset > 63 || Offset < -64);
+  };
+  const auto IsInvalidWordFPRelIns = [](unsigned Op, int64_t Offset) {
+    const std::unordered_set<unsigned> WordFPRelIns = {CDM::ssw, CDM::lsw};
+
+    return WordFPRelIns.count(Op) == 1 && (Offset > 127 || Offset < -128);
+  };
+
   // If the immediate operand of ssw, lsw, ssb, lsb, lssb
   // is out of bounds, perform a substitution
-  if (((MI.getOpcode() == CDM::ssw ||
-       MI.getOpcode() == CDM::lsw) && (SpOffset > 127 || SpOffset < -128)) ||
-       ((MI.getOpcode() == CDM::ssb ||
-       MI.getOpcode() == CDM::lsb ||
-       MI.getOpcode() == CDM::lssb) && (SpOffset > 63 || SpOffset < -64))) {
+  if (IsInvalidByteFPRelIns(MI.getOpcode(), SpOffset) ||
+      IsInvalidWordFPRelIns(MI.getOpcode(), SpOffset)) {
     if (!RS) {
-        llvm_unreachable("RegScavenger must be initialised");
+      llvm_unreachable("RegScavenger must be initialised");
     }
 
     Register TmpReg, SrcReg;
-    TmpReg = RS->scavengeRegisterBackwards(CDM::CPURegsRegClass, II, true, 2, true);
+    TmpReg =
+        RS->scavengeRegisterBackwards(CDM::CPURegsRegClass, II, true, 2, true);
     RS->setRegUsed(TmpReg);
 
-    unsigned I = 0;
-    while (!MI.getOperand(I).isReg()) {
-        ++I;
-    }
-    SrcReg = MI.getOperand(I).getReg();
+    auto *const It = std::find_if(
+        MI.operands_begin(), MI.operands_end(),
+        [](const MachineOperand &Operand) { return Operand.isReg(); });
+
+    if (It == MI.operands_end())
+      llvm_unreachable("Register MachineOperand wasn't found");
+
+    SrcReg = It->getReg();
 
     MachineBasicBlock &MBB = *MI.getParent();
-    BuildMI(MBB, II, II->getDebugLoc(), 
+    BuildMI(MBB, II, II->getDebugLoc(),
             MF.getSubtarget().getInstrInfo()->get(CDM::ldi), TmpReg)
         .addImm(SpOffset);
 
-    int substitutionOpc;
-    switch (MI.getOpcode()) {
-    case CDM::ssw:
-        substitutionOpc = CDM::stwRR;
-        break;
-    case CDM::lsw:
-        substitutionOpc = CDM::ldwRR;
-        break;
-    case CDM::ssb:
-        substitutionOpc = CDM::stbRR;
-        break;
-    case CDM::lsb:
-        substitutionOpc = CDM::ldbRR;
-        break;
-    case CDM::lssb:
-        substitutionOpc = CDM::ldsbRR;
-        break;
-    }
+    const std::unordered_map<unsigned, unsigned> SubstitutionOpcs = {
+        {CDM::ssw, CDM::stwRR},   {CDM::lsw, CDM::ldwRR},
+        {CDM::ssb, CDM::stbRR},   {CDM::lsb, CDM::ldbRR},
+        {CDM::lssb, CDM::ldsbRR},
+    };
+    unsigned SubstitutionOpc = SubstitutionOpcs.at(MI.getOpcode());
 
     BuildMI(MBB, II, II->getDebugLoc(),
-            MF.getSubtarget().getInstrInfo()->get(substitutionOpc))
+            MF.getSubtarget().getInstrInfo()->get(SubstitutionOpc))
         .addReg(SrcReg)
         .addReg(TmpReg)
         .addReg(MF.getSubtarget().getRegisterInfo()->getFrameRegister(MF))
