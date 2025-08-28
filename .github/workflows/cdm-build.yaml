@@ -29,9 +29,6 @@ jobs:
         run: |
               cd ./llvm/build/bin
               find .
-      - name: install docker
-        if: ${{ !contains(matrix.os, 'macos') }}
-        uses: docker/setup-docker-action@v4
       - name: install python
         if: ${{ !contains(matrix.os, 'macos') }}
         uses: actions/setup-python@v5
@@ -67,8 +64,6 @@ jobs:
         run: |
               cd ./llvm/build/bin
               Get-ChildItem -Recurse
-      - name: install docker
-        uses: docker/setup-docker-action@v4
       - name: install python
         uses: actions/setup-python@v5
       - name: run tests (windows)
