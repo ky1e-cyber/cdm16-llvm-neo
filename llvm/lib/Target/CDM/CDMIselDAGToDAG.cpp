@@ -24,6 +24,10 @@ using namespace llvm;
 
 char CDMDagToDagIselLegacy::ID = 0;
 
+StringRef CDMDagToDagIselLegacy::getPassName() const {
+    return PASS_NAME;
+}
+
 void CDMDagToDagIsel::Select(SDNode *N) {
 
   if (N->isMachineOpcode()) {

@@ -36,6 +36,9 @@ private:
 class CDMDagToDagIselLegacy : public SelectionDAGISelLegacy {
 public:
   static char ID;
+
+  StringRef getPassName() const override;
+
   explicit CDMDagToDagIselLegacy(CDMTargetMachine &TM, CodeGenOptLevel OptLevel)
       : SelectionDAGISelLegacy(
             ID, std::make_unique<CDMDagToDagIsel>(TM, OptLevel)) {}
