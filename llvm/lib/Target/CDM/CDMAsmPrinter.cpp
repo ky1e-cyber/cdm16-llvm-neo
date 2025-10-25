@@ -128,6 +128,11 @@ void CDMAsmPrinter::emitInstruction(const MachineInstr *Instr) {
 
   // TODO: figure out why there's a loop
   do {
+    // Skip bundle pseudo instruction and lower content of a bundle
+    if (I->isBundle()){
+	continue;
+    }
+
     if (I->isPseudo())
       llvm_unreachable("Pseudo opcode found in emitInstruction()");
 
