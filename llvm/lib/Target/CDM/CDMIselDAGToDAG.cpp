@@ -155,36 +155,20 @@ bool CDMDagToDagIsel::SelectConditionalBranch(SDNode *N) {
     return false;
   }
 
-  EVT CompareTys[] = {MVT::Other, MVT::Glue};
-  SDVTList CompareVT = CurDAG->getVTList(CompareTys);
-  SDValue CompareOps[] = {LHS, RHS, Chain};
   // TODO: long compare???
-  SDNode *Compare = CurDAG->getMachineNode(CDM::CMP, N, CompareVT, CompareOps);
-
   SDValue CCVal = CurDAG->getTargetConstant(CondMap[CC->get()], N, MVT::i32);
-  SDValue BranchOps[] = {CCVal, Target, SDValue(Compare, 0),
-                         SDValue(Compare, 1)};
 
-  CurDAG->SelectNodeTo(N, CDM::BCond, MVT::Other, BranchOps);
-
-  return true;
-}
-
-bool CDMDagToDagIsel::SelectBRCOND(llvm::SDNode *N) {
-  SDValue Chain = N->getOperand(0);
-  SDValue Cond = N->getOperand(1);
-  SDValue Target = N->getOperand(2);
-
-  EVT TstTys[] = {MVT::Other, MVT::Glue};
-  SDVTList TstVT = CurDAG->getVTList(TstTys);
-  SDValue TstOps[] = {Cond, Chain};
-  SDNode *TST = CurDAG->getMachineNode(CDM::TST, N, TstVT, TstOps);
-
-  SDValue CCVal =
-      CurDAG->getTargetConstant(CDMCOND::NE, N, MVT::i32); // NE == NZ
-  SDValue BranchOps[] = {CCVal, Target, SDValue(TST, 0), SDValue(TST, 1)};
-
-  CurDAG->SelectNodeTo(N, CDM::BCond, MVT::Other, BranchOps);
+  // If right operand is imm6
+  ConstantSDNode *Const = dyn_cast<ConstantSDNode>(RHS);
+  int64_t ConstVal = Const == nullptr ? 0 : Const->getConstantIntValue()->getSExtValue();
+  if (Const != nullptr && ConstVal >= -64 && ConstVal <= 63){
+	  SDValue PseudoBranchOps[] = {CCVal, LHS, CurDAG->getTargetConstant(ConstVal, N, MVT::i16), Target, Chain};
+	  CurDAG->SelectNodeTo(N, CDM::PseudoBCondRI, MVT::Other, PseudoBranchOps);
+  }
+  else{
+	  SDValue PseudoBranchOps[] = {CCVal, LHS, RHS, Target, Chain};
+	  CurDAG->SelectNodeTo(N, CDM::PseudoBCondRR, MVT::Other, PseudoBranchOps);
+  }
 
   return true;
 }
