@@ -331,12 +331,30 @@ def PseudoSelectCC
   let usesCustomInserter = true;
 }
 
+def PseudoSelectCCI
+    : CDMPseudo<(outs CPURegs:$dst),
+              (ins CPURegs:$lhs, i16imm:$rhs, CPURegs:$vtrue, CPURegs:$vfalse,
+                  cond_val:$cnd),
+              "",
+              []> {
+  let usesCustomInserter = true;
+}
+
+def : Pat<(selectcc CPURegs:$lhs, immZext6:$rhs, CPURegs:$vtrue, CPURegs:$vfalse,
+              cond:$cnd),
+          (PseudoSelectCCI CPURegs:$lhs, immZext6:$rhs, CPURegs:$vtrue,
+              CPURegs:$vfalse, (cond_as_i16imm $cnd))>;
+
 def : Pat<(selectcc CPURegs:$lhs, CPURegs:$rhs, CPURegs:$vtrue, CPURegs:$vfalse,
               cond:$cnd),
           (PseudoSelectCC CPURegs:$lhs, CPURegs:$rhs, CPURegs:$vtrue,
               CPURegs:$vfalse, (cond_as_i16imm $cnd))>;
 
 def CMP : CDMInst<(outs), (ins CPURegs:$ra, CPURegs:$rb), "cmp\t$ra, $rb", []> {
+  let Defs = [PSR];
+}
+
+def CMPI : CDMInst<(outs), (ins CPURegs:$r, i16imm:$imm), "cmp\t$r, $imm", []> {
   let Defs = [PSR];
 }
 
