@@ -60,8 +60,7 @@ def AND : arithLogicR<"and", and, 1>;
 def OR : arithLogicR<"or", or, 1>;
 def XOR : arithLogicR<"xor", xor, 1>;
 
-def immZext6 : ImmLeaf<i16, [{return (Imm >= 0) && (Imm <= 63);}]>;
-def negimmZext6 : ImmLeaf<i16, [{return (Imm <= 0) && (Imm >= -63);}]>;
+def immZext6 : ImmLeaf<i16, [{return (Imm >= -64) && (Imm <= 63);}]>;
 
 // thanks avr
 def imm16_neg_XFORM : SDNodeXForm<imm, [{
