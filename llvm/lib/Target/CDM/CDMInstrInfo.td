@@ -350,6 +350,20 @@ def : Pat<(selectcc CPURegs:$lhs, CPURegs:$rhs, CPURegs:$vtrue, CPURegs:$vfalse,
           (PseudoSelectCC CPURegs:$lhs, CPURegs:$rhs, CPURegs:$vtrue,
               CPURegs:$vfalse, (cond_as_i16imm $cnd))>;
 
+def PseudoBCondRR : CDMPseudo<(outs), (ins cond_val:$cnd, CPURegs:$lhs, CPURegs:$rhs, brtarget:$addr), "", []>{
+  let isTerminator = 1;
+  let isBranch = 1;
+  let Uses = [PSR];
+  let usesCustomInserter = true;
+}
+
+def PseudoBCondRI : CDMPseudo<(outs), (ins cond_val:$cnd, CPURegs:$lhs, i16imm:$rhs, brtarget:$addr), "", []>{
+  let isTerminator = 1;
+  let isBranch = 1;
+  let Uses = [PSR];
+  let usesCustomInserter = true;
+}
+
 def CMP : CDMInst<(outs), (ins CPURegs:$ra, CPURegs:$rb), "cmp\t$ra, $rb", []> {
   let Defs = [PSR];
 }
