@@ -156,24 +156,30 @@ FunctionPass *llvm::createCDMISelDagLegacy(llvm::CDMTargetMachine &TM,
   return new CDMDagToDagIselLegacy(TM, OptLevel);
 }
 
-bool CDMDagToDagIsel::isImm6(SDValue& V) {
-  ConstantSDNode *Const = dyn_cast<ConstantSDNode>(V);
-
-  if (Const == nullptr){
-    return false;
-  }
-
-  APInt constant = Const->getAPIntValue();
-
-  return constant.sge(-64) && constant.sle(63);
-}
-
-const APInt& CDMDagToDagIsel::getSDValueAsAPInt(SDValue& V) {
-  ConstantSDNode *Const = dyn_cast<ConstantSDNode>(V);
-
-  if (Const == nullptr){
-    llvm_unreachable("Tried to get imm6 value from SDValue which isn't Constant");
-  }
-
-  return Const->getAPIntValue();
+CDMCOND::CondOp 
+CDMDagToDagIsel::CCToCondOp(ISD::CondCode CC) const {
+	switch (CC) {
+		case ISD::CondCode::SETLT:
+			return CDMCOND::LT;
+		case ISD::CondCode::SETLE:
+			return CDMCOND::LE;
+		case ISD::CondCode::SETGT:
+			return CDMCOND::GT;
+		case ISD::CondCode::SETGE:
+			return CDMCOND::GE;
+		case ISD::CondCode::SETULT:
+			return CDMCOND::LO;
+		case ISD::CondCode::SETULE:
+			return CDMCOND::LS;
+		case ISD::CondCode::SETUGT:
+			return CDMCOND::HI;
+		case ISD::CondCode::SETUGE:
+			return CDMCOND::HS;
+		case ISD::CondCode::SETEQ:
+			return CDMCOND::EQ;
+		case ISD::CondCode::SETNE:
+			return CDMCOND::NE;
+		default:
+			llvm_unreachable("Unknown branch condition");
+	}
 }
