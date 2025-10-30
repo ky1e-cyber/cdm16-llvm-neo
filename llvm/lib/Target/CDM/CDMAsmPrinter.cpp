@@ -126,9 +126,10 @@ void CDMAsmPrinter::emitInstruction(const MachineInstr *Instr) {
   MachineBasicBlock::const_instr_iterator I = Instr->getIterator();
   MachineBasicBlock::const_instr_iterator E = Instr->getParent()->instr_end();
 
-  // TODO: figure out why there's a loop
+  // If instruction we emit is actually inside an instruction bundle,
+  // iterate over all instructions in bundle and emit them all
   do {
-    // Skip bundle pseudo instruction and lower content of a bundle
+    // Skip bundle pseudo instruction and emit content of a bundle
     if (I->isBundle()){
 	continue;
     }
