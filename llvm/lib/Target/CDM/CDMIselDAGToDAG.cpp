@@ -156,30 +156,3 @@ FunctionPass *llvm::createCDMISelDagLegacy(llvm::CDMTargetMachine &TM,
   return new CDMDagToDagIselLegacy(TM, OptLevel);
 }
 
-CDMCOND::CondOp 
-CDMDagToDagIsel::CCToCondOp(ISD::CondCode CC) const {
-	switch (CC) {
-		case ISD::CondCode::SETLT:
-			return CDMCOND::LT;
-		case ISD::CondCode::SETLE:
-			return CDMCOND::LE;
-		case ISD::CondCode::SETGT:
-			return CDMCOND::GT;
-		case ISD::CondCode::SETGE:
-			return CDMCOND::GE;
-		case ISD::CondCode::SETULT:
-			return CDMCOND::LO;
-		case ISD::CondCode::SETULE:
-			return CDMCOND::LS;
-		case ISD::CondCode::SETUGT:
-			return CDMCOND::HI;
-		case ISD::CondCode::SETUGE:
-			return CDMCOND::HS;
-		case ISD::CondCode::SETEQ:
-			return CDMCOND::EQ;
-		case ISD::CondCode::SETNE:
-			return CDMCOND::NE;
-		default:
-			llvm_unreachable("Unknown branch condition");
-	}
-}
